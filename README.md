@@ -5,3 +5,11 @@
 ### 使用：
 1. 注解@EnableJpa 
 2. repository 继承 BaseRepository
+
+### 功能支持
+* 条件查询
+* 子查询
+* sum查询
+* 关联查询
+* 分页查询
+

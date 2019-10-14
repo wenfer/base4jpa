@@ -8,7 +8,7 @@ import java.util.List;
  * <p>
  * 查询器
  *
- * @param <T> 结果类型
+ * @param <R> 结果类型
  *            </p>
  * @author qiuyuan
  * @since 1.0
