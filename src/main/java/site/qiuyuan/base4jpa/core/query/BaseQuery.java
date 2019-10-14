@@ -1,5 +1,11 @@
 package site.qiuyuan.base4jpa.core.query;
 
+import org.hibernate.query.criteria.internal.OrderImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
 import site.qiuyuan.base4jpa.core.Queryer;
 import site.qiuyuan.base4jpa.core.SubQueryer;
 import site.qiuyuan.base4jpa.specification.Where;
@@ -43,10 +49,15 @@ public class BaseQuery<F, R> implements Queryer<R> {
         this.where = new WhereImpl<>(cb, root, predicates);
     }
 
-    private TypedQuery<R> query() {
+    private AbstractQuery build(AbstractQuery query) {
         Predicate[] predicateArray = new Predicate[this.predicates.size()];
         Predicate[] predicates = this.predicates.toArray(predicateArray);
         query.where(predicates);
+        return query;
+    }
+
+    private TypedQuery<R> query() {
+        build(query);
         return entityManager.createQuery(query);
     }
 
@@ -58,6 +69,11 @@ public class BaseQuery<F, R> implements Queryer<R> {
     @Override
     public Where where() {
         return where;
+    }
+
+    @Override
+    public void orderBy(String property, boolean asc) {
+        query.orderBy(new OrderImpl(root.get(property), asc));
     }
 
     @Override
@@ -74,6 +90,36 @@ public class BaseQuery<F, R> implements Queryer<R> {
     @Override
     public List<R> findAll() {
         return query().getResultList();
+    }
+
+    @Override
+    public long count() {
+        CriteriaQuery<Long> count = cb.createQuery(Long.class);
+        build(count);
+        join(count);
+        TypedQuery<Long> countQuery = entityManager.createQuery(count);
+        return countQuery.getSingleResult();
+    }
+
+    private void join(CriteriaQuery criteriaQuery) {
+        Root from = criteriaQuery.from(root.getJavaType());
+        if (!CollectionUtils.isEmpty(root.getJoins())) {
+            for (Join<F, ?> join : root.getJoins()) {
+                from.join(join.getAttribute().getName(), join.getJoinType());
+            }
+        }
+    }
+
+    @Override
+    public Page<R> find(Pageable pageable) {
+        Sort sort = pageable.getSort();
+        if (sort != null) {
+            sort.iterator().forEachRemaining(s -> query.orderBy(new OrderImpl(root.get(s.getProperty()), s.isAscending())));
+        }
+        query().setMaxResults(pageable.getPageSize());
+        query().setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
+        List<R> resultList = query().getResultList();
+        return new PageImpl<>(resultList, pageable, count());
     }
 
     @Override

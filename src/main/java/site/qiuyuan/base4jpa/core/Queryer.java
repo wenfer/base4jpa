@@ -1,5 +1,7 @@
 package site.qiuyuan.base4jpa.core;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import site.qiuyuan.base4jpa.specification.Where;
 
 import java.util.List;
@@ -19,11 +21,17 @@ public interface Queryer<R> {
 
     Where where();
 
+    void orderBy(String property,boolean asc);
+
     Where join(String property);
 
     R findOne();
 
     List<R> findAll();
+
+    long count();
+
+    Page<R> find(Pageable pageable);
 
     <SF, SR> SubQueryer<SR> subQuery(String property, Class<SF> from, Class<SR> result);
 }

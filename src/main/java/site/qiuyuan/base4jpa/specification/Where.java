@@ -22,6 +22,10 @@ public interface Where<F> {
 
     Where<F> is(String property, Object value);
 
+    default Where<F> is(boolean condition, String property, Object value) {
+        return condition ? is(property, value) : this;
+    }
+
     /**
      * A列 大等于 B列
      */
@@ -32,6 +36,10 @@ public interface Where<F> {
     Where<F> isNull(String property, boolean isNull);
 
     Where<F> like(String property, String value, Position position);
+
+    default Where<F> like(boolean condition, String property, String value, Position position) {
+        return condition ? like(property, value, position) : this;
+    }
 
     Where<F> gte(String property, Number value);
 
@@ -46,11 +54,19 @@ public interface Where<F> {
      */
     Where<F> start(String property, Date time);
 
+    default Where<F> start(boolean condition, String property, Date date) {
+        return condition ? start(property, date) : this;
+    }
+
+
     /**
      * 结束时间查询
      */
     Where<F> end(String property, Date time);
 
+    default Where<F> end(boolean condition, String property, Date date) {
+        return condition ? end(property, date) : this;
+    }
 
 
 }
