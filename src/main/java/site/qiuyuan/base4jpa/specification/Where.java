@@ -1,72 +1,112 @@
 package site.qiuyuan.base4jpa.specification;
 
-import site.qiuyuan.base4jpa.enums.Position;
-
+import javax.persistence.criteria.Subquery;
+import java.util.Collection;
 import java.util.Date;
 
 /**
  * <p>
- * <F> from的表
+ * 条件构造器
+ * 拼接where 后面的sql
  * </p>
  *
  * @author qiuyuan
  * @since 1.0
  */
-public interface Where<F> {
+public interface Where extends PredicateBuilder {
 
-    /**
-     * 构建or查询
-     * or().is("p","1").is("p","2")
-     */
-    Where<F> or();
-
-    Where<F> is(String property, Object value);
-
-    default Where<F> is(boolean condition, String property, Object value) {
-        return condition ? is(property, value) : this;
+    static Where and() {
+        return new WhereImpl(OperatorEnum.AND);
     }
 
-    /**
-     * A列 大等于 B列
-     */
-    Where<F> gteAtoB(String propertyA, String propertyB);
-
-    Where<F> in(String property, Object... value);
-
-    Where<F> isNull(String property, boolean isNull);
-
-    Where<F> like(String property, String value, Position position);
-
-    default Where<F> like(boolean condition, String property, String value, Position position) {
-        return condition ? like(property, value, position) : this;
+    static Where or() {
+        return new WhereImpl(OperatorEnum.OR);
     }
 
-    Where<F> gte(String property, Number value);
+    static Where join(String property) {
+        return join(property, OperatorEnum.AND);
+    }
 
-    Where<F> gt(String property, Number value);
-
-    Where<F> lte(String property, Number value);
-
-    Where<F> lt(String property, Number value);
-
-    /**
-     * 起始时间查询
-     */
-    Where<F> start(String property, Date time);
-
-    default Where<F> start(boolean condition, String property, Date date) {
-        return condition ? start(property, date) : this;
+    static Where join(String property, OperatorEnum operatorEnum){
+        return new WhereImpl(operatorEnum,property);
     }
 
 
     /**
-     * 结束时间查询
+     * sql:   =
      */
-    Where<F> end(String property, Date time);
+    Where eq(String property, Object value);
 
-    default Where<F> end(boolean condition, String property, Date date) {
-        return condition ? end(property, date) : this;
-    }
+    /**
+     * sql:   !=
+     */
+    Where neq(String property, Object value);
 
+    /**
+     * sql:   in()
+     */
+    Where in(String property, Collection<?> value);
+
+    /**
+     * sql:   not in()
+     */
+    Where nin(String property, Collection<?> value);
+
+    /**
+     * sql:   >=
+     */
+    Where gte(String property, Number value);
+
+    /**
+     * sql:   >
+     */
+    Where gt(String property, Number value);
+
+    /**
+     * sql:   find_in_set()
+     */
+    Where findInSet(String property, String value);
+
+    /**
+     * sql:   <=
+     */
+    Where lte(String property, Number value);
+
+    /**
+     * sql:   <
+     */
+    Where lt(String property, Number value);
+
+    /**
+     * type:  date or time
+     * sql:   >=
+     */
+    Where start(String property, Date start);
+
+    /**
+     * type:  date or time
+     * sql:   <=
+     */
+    Where end(String property, Date end);
+
+    /**
+     * sql:  (isNull?'':'not')  is null
+     */
+    Where isNull(String property, boolean isNull);
+
+    /**
+     * <code>
+     * SubQueryer<Product> subqueryer = query.subquery("id",F.class,R.class);
+     * subqueryer.where().eq("","")
+     * <p>
+     * baseQueryer.where().any("id",subquery.build());
+     * </code>
+     */
+    <S> Where any(String property, Subquery<S> subQuery);
+
+    /**
+     * @param position -1 左模糊   0 全模糊  1 右模糊
+     */
+    Where like(String property, String value, int position);
 
 }

@@ -1,25 +1,62 @@
 package site.qiuyuan.base4jpa.repo;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
-import site.qiuyuan.base4jpa.core.Queryer;
+import org.springframework.data.repository.Repository;
+import site.qiuyuan.base4jpa.searcher.MultiSumSearcher;
+import site.qiuyuan.base4jpa.searcher.Searcher;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author qiuyuan
+ * @see QuerydslPredicateExecutor <T>
  * @since 1.0
  */
 @NoRepositoryBean
-public interface BaseRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
+public interface BaseRepository<T, ID extends Serializable> extends Repository<T, ID> {
 
-    /**
-     * 获取查询器
-     *
-     * @return 创建一个新的查询器
-     */
-    Queryer<T> queryer();
+    Searcher<T> searcher();
 
-    <R> Queryer<R> multiSum(Class<R> clazz);
+    <R> MultiSumSearcher<R> multiSum(Class<R> resultClass);
+
+    <R> R query(String sql, Class<R> r);
+
+    <S extends T> S save(S t);
+
+    <S extends T> List<S> saveAll(Collection<S> iterable);
+
+    void deleteAll(Collection<? extends T> iterable);
+
+    Optional<T> findById(ID id);
+
+    boolean existsById(ID id);
+
+    void delete(T t);
+
+    void deleteById(ID id);
+
+    long count(Predicate predicate);
+
+    boolean exists(Predicate predicate);
+
+    Page<T> page(Predicate predicate, PageRequest pageRequest);
+
+    List<T> findAll(OrderSpecifier<?>... orders);
+
+    List<T> findAll(Predicate predicate, OrderSpecifier<?>... orders);
+
+    List<T> findAll(Predicate predicate);
+
+    Optional<T> findOne(Predicate predicate);
+
 
 }
